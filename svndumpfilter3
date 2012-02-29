@@ -536,6 +536,30 @@ def write_lump(f, lump):
     if not lump.hdrdict.has_key("Revision-number"):
         f.write('\n')
 
+def write_one_mkdir(f, dirname):
+    f.write("Node-path: " + dirname + "\n")
+    f.write("Node-kind: dir\n")
+    f.write("Node-action: add\n")
+    f.write("Prop-content-length: 10\n")
+    f.write("Content-length: 10\n")
+    f.write("\nPROPS-END\n\n\n")
+
+mkdirhistory={}
+
+def write_mkdir(f, dirname, create=1):
+    """
+    write directory creation lump to file
+    """
+    dirs=splitpath(dirname)
+    c=0
+    for d in dirs:
+        c+=1
+        tobecreated="/".join(dirs[0:c])
+        if mkdirhistory.has_key(tobecreated):
+            continue
+        mkdirhistory[tobecreated]=1
+        if create:
+            write_one_mkdir(f, tobecreated)
 
 def fetch_rev_rename(repos, srcrev, srcpath, path, fout, flog, format):
     """
@@ -819,11 +843,33 @@ def main():
                 '   %-10s %-10s %s' %
                 (d.get('Node-kind', ''), d['Node-action'], d['Node-path']))
 
+        module=os.environ["MODULE"]
+        if lump.hdrdict.has_key("Node-copyfrom-path") and not re.search('/'+module+'(/|$)', lump.hdrdict["Node-copyfrom-path"]):
+            # catch copies of whole trunk / branches (that include our module)
+            origsrcpath = lump.hdrdict["Node-copyfrom-path"]
+            srcrevision = lump.hdrdict["Node-copyfrom-rev"]
+            re_interesting='((^branches/.+)|(^tags/[^/]+$)|(^trunk$))'
+            srcpath = re.sub(re_interesting, '\\1/' + module, origsrcpath)
+            print >> flog, "Node-copyfrom-path: " + srcpath + "R:" + srcrevision + "  NodeP:" + lump.hdrdict["Node-path"]
+            if lump.hdrdict["Node-copyfrom-path"] != srcpath:
+                svncmd = "svn ls -r " + srcrevision + " file://" + opts.repos + "/" + origsrcpath + " | grep -q ^" + module +"/$"
+                print >> flog, svncmd
+                if os.system(svncmd) == 0:
+                    write_mkdir(fw, lump.hdrdict["Node-path"])
+                    lump.hdrdict["Node-path"] = re.sub(re_interesting, '\\1/' + module, lump.hdrdict["Node-path"])
+                    print >> flog, "replaced Node-path:" + lump.hdrdict["Node-path"] + " ## Node-copyfrom-path: " + srcpath
+                    lump.hdrdict["Node-copyfrom-path"] = srcpath
+
         # Filter out the uninteresting lumps
         path = lump.hdrdict['Node-path']
         if not paths.interesting(path):
+            # add missing branch dirs
+            if lump.hdrdict['Node-action'] == 'add' and lump.hdrdict['Node-kind'] == 'dir' and re.match("((^branches)|(^tags/?[^/]*$)|(^trunk$))",lump.hdrdict['Node-path']):
+                write_mkdir(fw, lump.hdrdict['Node-path'])
+                continue
             filtered.add(path)
             continue
+        write_mkdir(fw, lump.hdrdict['Node-path'], False)
 
         # See if any of the provided filters match against this file
         num_subs = 0
