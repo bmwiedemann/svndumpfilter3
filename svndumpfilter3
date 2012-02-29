@@ -282,7 +282,7 @@ class InterestingPaths:
         for a in args:
             self.res.append([])
             for component in splitpath(a):
-                self.res[-1].append(re.compile(component))
+                self.res[-1].append(re.compile('^' + component + '$'))
         """List of regular expressions to match against/exclude."""
 
     def interesting(self, path):
