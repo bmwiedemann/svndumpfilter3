@@ -418,7 +418,7 @@ class Lump:
         else:
             self.delhdr("Prop-content-length")
 
-        if len(self.text) > 0 or \
+        if self.hastext and len(self.text) >= 0 or \
            (self.hdrdict.get('Node-action', None) == 'add' and
             self.hdrdict.get('Node-kind', None) == 'file' and
             not self.hdrdict.get('Node-copyfrom-path', None)):
@@ -504,12 +504,15 @@ def read_lump(f):
     if lump is None:
         return None
     pcl = int(lump.hdrdict.get("Prop-content-length", "0"))
-    tcl = int(lump.hdrdict.get("Text-content-length", "0"))
+    tcl = int(lump.hdrdict.get("Text-content-length", "-1"))
     if pcl > 0:
         lump.prop = f.read(pcl)
         lump.propparse()
-    if tcl > 0:
+    if tcl >= 0:
         lump.text = f.read(tcl)
+        lump.hastext = True
+    else:
+        lump.hastext = False
 
     lump.orig_text = os.linesep.join(lines) + lump.prop + lump.text
 
