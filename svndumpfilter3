@@ -111,9 +111,12 @@ for multiple project roots (it was my case).
 
 [2009-01-08] An bugfix patch was provided by Jamie Townsend <jtownsen at
 progress dot com>.
+
 [2009-04-05] Minor path matching improvements by Matthias Troffaes <matthias
 dot troffaes at gmail dot com>
 
+[2012-02-21] A few fixs  from "Bernhard M. Wiedemann" <bwiedemann dot
+suse at de> were applied.
 
 Important Note
 --------------
@@ -129,7 +132,7 @@ Here is a note from a user about a potential problem with the preservation of
 properties, with the >100 hr/week workload, I have no time to look into it at
 the moment:
 
-  From "Földvári György"
+  From "Fldvri Gyrgy"
   To  	blais@furius.ca
   Subject  	Critical bug in svndumpfilter3? 	Show full header
   Hello Martin,
