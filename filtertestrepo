@@ -1,0 +1,11 @@
+#!/bin/sh
+export MODULE=x # only needed for yast-hacked version
+./svndumpfilter3 ".*" < $R.dump > $R.2.dump || exit 1
+rm -rf $R.2
+svnadmin create $R.2
+svnadmin load $R.2 < $R.2.dump
+rm -rf REPO.2
+svn co file://$R.2
+diff -u $R.dump $R.2.dump
+ls -l REPO REPO.2
+

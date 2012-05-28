@@ -1,6 +1,6 @@
 #!/bin/sh
-R=/tmp/svndumpfilter.test/REPO
 base=`dirname $R`
+test -z $base && exit 1
 rm -rf $base REPO
 mkdir -p $base
 svnadmin create $R
@@ -19,11 +19,3 @@ echo echo changed >> script.sh
 svn commit -m "change script"
 cd ..
 svnadmin dump $R > $R.dump
-export MODULE=x # only needed for yast-hacked version
-./svndumpfilter3 ".*" < $R.dump > $R.2.dump
-svnadmin create $R.2
-svnadmin load $R.2 < $R.2.dump
-svn co file://$R.2
-diff -u $R.dump $R.2.dump
-ls -l REPO REPO.2
-
