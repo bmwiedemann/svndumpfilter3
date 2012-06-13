@@ -632,7 +632,7 @@ def fetch_rev_rename(repos, srcrev, srcpath, path, fout, flog, format):
 
     p2.wait()
     if p2.returncode != 0:
-        raise SystemExit("Error: Running %s" % " ".join(cmd))
+        raise SystemExit("Error: Running %s" % " ".join(cmd + ("##",) + cmd_filter))
 
 
 def parse_options():
